@@ -1,9 +1,5 @@
 package main
 
-import (
-	"fmt"
-)
-
 const (
 	CONN_HOST   = "localhost"
 	CONN_DOMAIN = "localhost"
