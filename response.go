@@ -4,14 +4,13 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"os"
 	"path"
 )
 
 func createListing(reqPath string) (string, error) {
 	log.Info("Creating listing for request: ", reqPath)
 
-	listing := ""
+	var listing string
 
 	// Handle directories
 	if dirExists(reqPath) {
@@ -20,13 +19,13 @@ func createListing(reqPath string) (string, error) {
 
 		// Check if it contains a "index.gph" and serve it if it does
 		if fileExists(path.Join(reqPath, "index.gph")) {
-			gopherMap, err := os.Open(path.Join(reqPath, "index.gph"))
+			gopherMap, err := ioutil.ReadFile(path.Join(reqPath, "index.gph"))
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			log.Info("Requested path", reqPath, " contains gophermap")
-			return fmt.Sprint(gopherMap), nil
+			return fmt.Sprint(string(gopherMap)), nil
 		}
 
 		// If it is a directory without "index.gph", generate a menu from the contents
@@ -55,13 +54,13 @@ func createListing(reqPath string) (string, error) {
 
 	// Handle files
 	if fileExists(reqPath) {
-		gopherMap, err := os.Open(reqPath)
+		gopherMap, err := ioutil.ReadFile(reqPath)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		log.Info("Requested path", reqPath, " contains gophermap")
-		return fmt.Sprint(gopherMap), nil
+		return fmt.Sprint(string(gopherMap)), nil
 	}
 
 	return listing, nil
