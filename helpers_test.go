@@ -28,7 +28,7 @@ func Test_dirExists(t *testing.T) {
 		filename string
 		want     bool
 	}{
-		{"Test existing directory", "tesdata/subdir1", true},
+		{"Test existing directory", "testdata/subdir1", true},
 		{"Test non-existing directory", "testdata/subdir3", false},
 		{"Test existing file", "testdata/file1", false},
 		{"Test non-existing file", "testdata/file2", false},

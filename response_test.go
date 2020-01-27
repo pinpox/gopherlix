@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -41,43 +41,43 @@ func Test_createListing(t *testing.T) {
 		{
 			name:    "Test root/file1",
 			reqPath: "testdata/file1",
-			want:    "file1content\r\n",
+			want:    "file1content",
 			wantErr: false,
 		},
 		{
 			name:    "Test root/subdir1",
 			reqPath: "testdata/subdir1",
-			want:    "TODO",
+			want: "0file4	file4	localhost	8000\r\n0file5	file5	localhost	8000\r\n.",
 			wantErr: false,
 		},
 		{
 			name:    "Test root/subdir2",
 			reqPath: "testdata/subdir2",
-			want:    "TODO",
+			want:    "indexcontent",
 			wantErr: false,
 		},
 		{
 			name:    "Test root/subdir1/file4 dir request",
 			reqPath: "testdata/subdir1/file4",
-			want:    "file4content\r\n",
+			want:    "file4content",
 			wantErr: false,
 		},
 		{
 			name:    "Test root/subdir1/file5 dir request",
 			reqPath: "testdata/subdir1/file5",
-			want:    "file5content\r\n",
+			want:    "file5content",
 			wantErr: false,
 		},
 		{
 			name:    "Test root/subdir2/file2 dir request",
 			reqPath: "testdata/subdir2/file2",
-			want:    "file2content\r\n",
+			want:    "file2content",
 			wantErr: false,
 		},
 		{
 			name:    "Test root/subdir2/file3 dir request",
 			reqPath: "testdata/subdir2/file3",
-			want:    "file3content\r\n",
+			want:    "file3content",
 			wantErr: false,
 		},
 	}
@@ -85,14 +85,17 @@ func Test_createListing(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := createListing(tt.reqPath)
-			fmt.Println(got)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("createListing() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("createListing() = %v, want %v", got, tt.want)
+				t.Errorf("createListing() = %v, want %v", replaceCRLF(got), replaceCRLF(tt.want))
 			}
 		})
 	}
+}
+
+func replaceCRLF(input string) string {
+	return strings.ReplaceAll(strings.ReplaceAll(input, "\r", "\\r"), "\n", "\\n")
 }
