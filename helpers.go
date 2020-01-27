@@ -23,11 +23,11 @@ func dirExists(filename string) bool {
 	return info.IsDir()
 }
 
-func getSavePath(subPath string) (string, error) {
+func (server *GopherServer) getSavePath(subPath string) (string, error) {
 	//TODO check for directory traversal
-	savePath := path.Clean(path.Join(SERVER_ROOT, subPath))
-	if !strings.HasPrefix(savePath, SERVER_ROOT) {
-		return "", errors.New("Path outside of server root")
+	savePath := path.Clean(path.Join(server.RootDir, subPath))
+	if !strings.HasPrefix(savePath, server.RootDir) {
+		return "", errors.New("Path outside of server root: " + savePath)
 	}
 	return savePath, nil
 }

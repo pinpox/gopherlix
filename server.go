@@ -1,91 +1,110 @@
 package main
 
 import (
-	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net"
-	"os"
 	"strings"
 )
 
 // Define basic settings of the server. This will be exported to a config file
 // at some point.
-const (
-	CONN_HOST   = "localhost"
-	CONN_DOMAIN = "localhost"
-	CONN_PORT   = "8000"
-	CONN_TYPE   = "tcp"
-	SERVER_ROOT = "./content"
-)
 
-func main() {
+type GopherServer struct {
+	Port    string
+	Domain  string
+	Host    string
+	RootDir string
+	run     bool
+	signals chan bool
+}
+
+func NewGopherServer(port, domain, host, root string) GopherServer {
+	return GopherServer{Port: port, Domain: domain, Host: host, RootDir: root, run: false, signals: make(chan bool)}
+
+}
+
+func (server *GopherServer) Run() {
+	server.run = true
 
 	// Listen for incoming connections.
-	l, err := net.Listen(CONN_TYPE, CONN_HOST+":"+CONN_PORT)
+	l, err := net.Listen("tcp", server.Host+":"+server.Port)
 	if err != nil {
-		fmt.Println("Error listening:", err.Error())
-		os.Exit(1)
+		log.Fatal("Error listening:", err.Error())
 	}
 
 	// Close the listener when the application closes.
+
 	defer l.Close()
 
-	fmt.Println("Listening on " + CONN_HOST + ":" + CONN_PORT)
-
+	log.Infof("Listening on %s:%s", server.Host, server.Port)
 	for {
+
+		select {
+		case stop := <-server.signals:
+			if stop {
+				log.Info("Stop signal received, stopping Server")
+				break
+			}
+		default:
+		}
 
 		// Listen for an incoming connection.
 		conn, err := l.Accept()
-		fmt.Println("Accepted connection from:", conn.RemoteAddr())
+		log.Println("Accepted connection from:", conn.RemoteAddr())
 		if err != nil {
-			fmt.Println("Error accepting: ", err.Error())
-			os.Exit(1)
+			log.Warn("Error accepting: ", err.Error())
 		}
 
 		// Handle connections in a new goroutine.
-		go handleRequest(conn)
+		go server.handleRequest(conn)
 		if err != nil {
 			log.Println(err)
 		}
 	}
 }
 
-func parseRequest(req string, reqLen int) (string, error) {
+func (server *GopherServer) parseRequest(req string, reqLen int) (string, error) {
 	reqPath := strings.TrimSuffix(req, "\r\n")
-	fmt.Println("Creating listing for \"" + reqPath + "\"")
+	log.Info("Got request: " + reqPath)
 
-	listing, err := createListing(reqPath)
+	savePath, err := server.getSavePath(reqPath)
 
 	if err != nil {
-		return "", nil
+		log.Fatal(err)
+	}
+
+	listing, err := createListing(savePath)
+
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	return listing, nil
 }
 
 // Handles incoming requests.
-func handleRequest(conn net.Conn) error {
+func (server *GopherServer) handleRequest(conn net.Conn) error {
 	// Make a buffer to hold incoming data.
 	buf := make([]byte, 1024)
 
 	// Read the incoming connection into the buffer.
 	reqLen, err := conn.Read(buf)
 	if err != nil {
-		fmt.Println("Error reading:", err.Error())
+		log.Println("Error reading:", err.Error())
 	}
 
-	fmt.Println("Read ", reqLen, " bytes from ", conn.RemoteAddr())
-	fmt.Println(string(buf[:reqLen]))
+	log.Println("Read ", reqLen, " bytes from ", conn.RemoteAddr())
+	log.Println(string(buf[:reqLen]))
 
-	response, err := parseRequest(string(buf[:reqLen]), reqLen)
+	response, err := server.parseRequest(string(buf[:reqLen]), reqLen)
 
 	// Send a response back to person contacting us.
-	fmt.Println("Sending response to: ", conn.RemoteAddr())
-	fmt.Println(response)
+	log.Println("Sending response to: ", conn.RemoteAddr())
+	log.Println(response)
 	conn.Write([]byte(response))
 
 	// Close the connection when you're done with it.
-	fmt.Println("Closing conntion to: ", conn.RemoteAddr())
+	log.Info("Closing conntion to: ", conn.RemoteAddr())
 	conn.Close()
 	return nil
 }
