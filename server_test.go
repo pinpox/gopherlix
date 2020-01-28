@@ -83,7 +83,7 @@ func TestGopherServer_parseRequest(t *testing.T) {
 			name:    "Test root",
 			server:  NewGopherServer("8000", "localhost", "localhost", "testdata"),
 			request: "\r\n",
-			want: "0file1	file1	localhost	8000\r\n1subdir1	subdir1	localhost	8000\r\n1subdir2	subdir2	localhost	8000\r\n.",
+			want: "0file1	file1	localhost	8000\r\n1sub1	sub1	localhost	8000\r\n1subdir1	subdir1	localhost	8000\r\n1subdir2	subdir2	localhost	8000\r\n.",
 			wantErr: false,
 		},
 		{
@@ -147,7 +147,7 @@ func TestGopherServer_parseRequest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.server.parseRequest(tt.request)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GopherServer.parseRequest() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GopherServer.parseRequest() error = \n        %v, \nwantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {

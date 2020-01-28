@@ -50,7 +50,7 @@ func TestGopherServer_createListing(t *testing.T) {
 			name:    "Test root",
 			server:  NewGopherServer("8000", "localhost", "localhost", "testdata"),
 			reqPath: "testdata",
-			want: "0file1	file1	localhost	8000\r\n1subdir1	subdir1	localhost	8000\r\n1subdir2	subdir2	localhost	8000\r\n.",
+			want: "0file1	file1	localhost	8000\r\n1sub1	sub1	localhost	8000\r\n1subdir1	subdir1	localhost	8000\r\n1subdir2	subdir2	localhost	8000\r\n.",
 			wantErr: false,
 		},
 		{
@@ -79,6 +79,13 @@ func TestGopherServer_createListing(t *testing.T) {
 			server:  NewGopherServer("8000", "localhost", "localhost", "testdata"),
 			reqPath: "testdata/subdir1/file4",
 			want:    "file4content",
+			wantErr: false,
+		},
+		{
+			name:    "Test root/sub1/subdir1/subdir2/subdir3/file6  dir request",
+			server:  NewGopherServer("8000", "localhost", "localhost", "testdata"),
+			reqPath: "testdata/sub1/subdir1/subdir2/subdir3/file6",
+			want:    "file6content",
 			wantErr: false,
 		},
 		{
@@ -114,11 +121,11 @@ func TestGopherServer_createListing(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.server.createListing(tt.reqPath)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GopherServer.createListing() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GopherServer.createListing() error = \n       %v,\n wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("createListing() = %v, want %v", replaceCRLF(got), replaceCRLF(tt.want))
+				t.Errorf("createListing() =\n      %v,\n want %v", replaceCRLF(got), replaceCRLF(tt.want))
 			}
 		})
 	}
