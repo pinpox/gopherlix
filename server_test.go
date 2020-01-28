@@ -2,73 +2,8 @@ package main
 
 import (
 	"net"
-	// "reflect"
 	"testing"
 )
-
-// func TestNewGopherServer(t *testing.T) {
-// 	tests := []struct {
-// 		name   string
-// 		port   string
-// 		domain string
-// 		host   string
-// 		root   string
-// 		want   GopherServer
-// 	}{
-// 		{
-// 			name:   "Create a server with some parameters",
-// 			port:   "70",
-// 			domain: "domain1",
-// 			host:   "host1",
-// 			root:   "root1",
-// 			want: GopherServer{
-// 				Port:    "70",
-// 				Domain:  "domain1",
-// 				Host:    "host1",
-// 				RootDir: "root1",
-// 				run:     false,
-// 				signals: make(chan bool),
-// 			},
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			if got := NewGopherServer(tt.port, tt.domain, tt.host, tt.root); !reflect.DeepEqual(got, tt.want) {
-// 				t.Errorf("NewGopherServer() = %v, want %v", got, tt.want)
-// 			}
-// 		})
-// 	}
-// }
-
-func TestGopherServer_Run(t *testing.T) {
-	type fields struct {
-		Port    string
-		Domain  string
-		Host    string
-		RootDir string
-		run     bool
-		signals chan bool
-	}
-	tests := []struct {
-		name   string
-		fields fields
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			server := &GopherServer{
-				Port:    tt.fields.Port,
-				Domain:  tt.fields.Domain,
-				Host:    tt.fields.Host,
-				RootDir: tt.fields.RootDir,
-				run:     tt.fields.run,
-				signals: tt.fields.signals,
-			}
-			server.Run()
-		})
-	}
-}
 
 func TestGopherServer_parseRequest(t *testing.T) {
 	tests := []struct {
