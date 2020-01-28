@@ -6,6 +6,6 @@
 
 
 # gopher-server
-A Server for the Gopher protocol, written in the Go.
 
 ![](./logo.png)
+A Server for the Gopher protocol, written in the Go.
