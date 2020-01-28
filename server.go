@@ -91,12 +91,18 @@ func (server *GopherServer) handleRequest(conn net.Conn) error {
 	reqLen, err := conn.Read(buf)
 	if err != nil {
 		log.Println("Error reading:", err.Error())
+		return err
 	}
 
 	log.Println("Read ", reqLen, " bytes from ", conn.RemoteAddr())
 	log.Println(string(buf[:reqLen]))
 
 	response, err := server.parseRequest(string(buf[:reqLen]), reqLen)
+
+	if err != nil {
+		log.Println("Error parsing request:", err.Error())
+		return err
+	}
 
 	// Send a response back to person contacting us.
 	log.Println("Sending response to: ", conn.RemoteAddr())
