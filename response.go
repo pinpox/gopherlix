@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -23,7 +24,7 @@ func (server *GopherServer) createListing(reqPath string) (string, error) {
 			gopherMap, err := ioutil.ReadFile(path.Join(reqPath, "index.gph"))
 
 			if err != nil {
-				log.Fatal(err)
+				return "", err
 			}
 
 			log.Info("Requested path", reqPath, " contains gophermap")
@@ -35,7 +36,7 @@ func (server *GopherServer) createListing(reqPath string) (string, error) {
 		files, err := ioutil.ReadDir(reqPath)
 
 		if err != nil {
-			log.Fatal(err)
+			return "", err
 		}
 
 		for _, f := range files {
@@ -51,20 +52,21 @@ func (server *GopherServer) createListing(reqPath string) (string, error) {
 
 		// Add last dot
 		listing += "."
+		return listing, nil
 	}
 
 	// Handle files
 	if fileExists(reqPath) {
 		gopherMap, err := ioutil.ReadFile(reqPath)
 		if err != nil {
-			log.Fatal(err)
+			return "", err
 		}
 
 		log.Info("Requested path", reqPath, " contains gophermap")
 		return string(bytes.TrimRight(gopherMap, "\n")), nil
 	}
 
-	return listing, nil
+	return "", errors.New("File or directory " + reqPath + " not found")
 
 }
 

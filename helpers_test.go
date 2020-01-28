@@ -32,6 +32,7 @@ func Test_dirExists(t *testing.T) {
 		{"Test non-existing directory", "testdata/subdir3", false},
 		{"Test existing file", "testdata/file1", false},
 		{"Test non-existing file", "testdata/file2", false},
+		{"Test root directory", "testdata/", true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -74,6 +75,12 @@ func TestGopherServer_getSavePath(t *testing.T) {
 			subPath: "../../../subdir",
 			want:    "",
 			wantErr: true,
+		},
+		{name: "Test invalid path inside root",
+			server:  NewGopherServer("8000", "localhost", "localhost", "testdata"),
+			subPath: "subdir2/file48",
+			want:    "testdata/subdir2/file48",
+			wantErr: false,
 		},
 	}
 

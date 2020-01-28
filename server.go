@@ -63,20 +63,21 @@ func (server *GopherServer) Run() {
 	}
 }
 
-func (server *GopherServer) parseRequest(req string, reqLen int) (string, error) {
+func (server *GopherServer) parseRequest(req string) (string, error) {
 	reqPath := strings.TrimSuffix(req, "\r\n")
 	log.Info("Got request: " + reqPath)
 
 	savePath, err := server.getSavePath(reqPath)
 
+	log.Info("Got path: " + savePath)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	listing, err := server.createListing(savePath)
 
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	return listing, nil
@@ -97,7 +98,7 @@ func (server *GopherServer) handleRequest(conn net.Conn) error {
 	log.Println("Read ", reqLen, " bytes from ", conn.RemoteAddr())
 	log.Println(string(buf[:reqLen]))
 
-	response, err := server.parseRequest(string(buf[:reqLen]), reqLen)
+	response, err := server.parseRequest(string(buf[:reqLen]))
 
 	if err != nil {
 		log.Println("Error parsing request:", err.Error())

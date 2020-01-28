@@ -102,6 +102,13 @@ func TestGopherServer_createListing(t *testing.T) {
 			want:    "file3content",
 			wantErr: false,
 		},
+		{
+			name:    "Test invalid path",
+			server:  NewGopherServer("8000", "localhost", "localhost", "testdata"),
+			reqPath: "subdir2/file48\r\n",
+			want:    "",
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
