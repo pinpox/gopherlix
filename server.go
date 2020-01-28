@@ -1,44 +1,73 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
 	"net"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
-// Define basic settings of the server. This will be exported to a config file
-// at some point.
-
+// GopherServer holds the basic information of the server. This includes
+// connection parameters and the server root directory
 type GopherServer struct {
-	Port    string
-	Domain  string
-	Host    string
+
+	// Port to listen on, normally 70
+	Port string
+
+	// Domain to which the requests will be made to. This will be used e.g.
+	// in links
+	Domain string
+
+	// Host to bind to, most likely localhost or a specific IP
+	Host string
+
+	// Root folder of the server. All content files should be placed inside
+	// of it since only files in this folder are allowed to be accessed.
 	RootDir string
+
+	// Control server main loop. Setting this to false or sending a signal
+	// to the channel will result in stopping the server
 	run     bool
 	signals chan bool
 }
 
+// NewGopherServer is used to create a new server. It returns a server, that is not running yet
 func NewGopherServer(port, domain, host, root string) GopherServer {
-	return GopherServer{Port: port, Domain: domain, Host: host, RootDir: root, run: false, signals: make(chan bool)}
-
+	return GopherServer{
+		Port:    port,
+		Domain:  domain,
+		Host:    host,
+		RootDir: root,
+		run:     false,
+		signals: make(chan bool),
+	}
 }
 
+// Run starts the server. It will listen for connections until the stop signal
+// is send via the signals channel.
 func (server *GopherServer) Run() {
 	server.run = true
 
 	// Listen for incoming connections.
 	l, err := net.Listen("tcp", server.Host+":"+server.Port)
+
 	if err != nil {
+		// If any error occures here, print it and quit. We can't continue at
+		// this point
 		log.Fatal("Error listening:", err.Error())
 	}
 
 	// Close the listener when the application closes.
-
 	defer l.Close()
 
 	log.Infof("Listening on %s:%s", server.Host, server.Port)
+
+	// Main loop, this will run until we receive the stop signal or an error
+	// occurs
 	for {
 
+		// Read from the signals channel in a non-blocking fashion. In case we
+		// get a signal, stop the server printing out an informational message
 		select {
 		case stop := <-server.signals:
 			if stop {
@@ -48,43 +77,58 @@ func (server *GopherServer) Run() {
 		default:
 		}
 
-		// Listen for an incoming connection.
+		// Listen for an incoming connection. This will block until a connection is made.
 		conn, err := l.Accept()
+
+		// Log accepted connection with ip address.
 		log.Println("Accepted connection from:", conn.RemoteAddr())
 		if err != nil {
 			log.Warn("Error accepting: ", err.Error())
 		}
 
-		// Handle connections in a new goroutine.
+		// Handle connections in a new goroutine. If any errors occur during
+		// handling of the requests, don't quit but close the connection and
+		// continue listening
 		go server.handleRequest(conn)
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 		}
 	}
 }
 
 func (server *GopherServer) parseRequest(req string) (string, error) {
-	reqPath := strings.TrimSuffix(req, "\r\n")
-	log.Info("Got request: " + reqPath)
 
+	// Trim trailing \r\n characters
+	reqPath := strings.TrimSuffix(req, "\r\n")
+	log.Info("Parsing request: " + reqPath)
+
+	// Get a path inside the server root
 	savePath, err := server.getSavePath(reqPath)
 
-	log.Info("Got path: " + savePath)
+	// Stop parsing if something is wrong with the path to prevent directory
+	// traversal
 	if err != nil {
 		return "", err
 	}
 
+	// Request path is allowed, try to create a response
 	listing, err := server.createListing(savePath)
 
+	// If the file was not found or any other error occured, return an error
 	if err != nil {
 		return "", err
 	}
 
+	// Everything is fine, return the response
 	return listing, nil
 }
 
 // Handles incoming requests.
 func (server *GopherServer) handleRequest(conn net.Conn) error {
+
+	// Make sure we close the connection after using it
+	defer conn.Close()
+
 	// Make a buffer to hold incoming data.
 	buf := make([]byte, 1024)
 
@@ -95,23 +139,20 @@ func (server *GopherServer) handleRequest(conn net.Conn) error {
 		return err
 	}
 
-	log.Println("Read ", reqLen, " bytes from ", conn.RemoteAddr())
-	log.Println(string(buf[:reqLen]))
-
+	// Create a response from the request
 	response, err := server.parseRequest(string(buf[:reqLen]))
 
+	// If the request could not be parsed or any error occured, just send an
+	// error message and return an error
 	if err != nil {
-		log.Println("Error parsing request:", err.Error())
+		conn.Write([]byte("Invalid request"))
 		return err
 	}
 
-	// Send a response back to person contacting us.
-	log.Println("Sending response to: ", conn.RemoteAddr())
-	log.Println(response)
-	conn.Write([]byte(response))
+	// Send response
+	_, err = conn.Write([]byte(response))
 
-	// Close the connection when you're done with it.
-	log.Info("Closing conntion to: ", conn.RemoteAddr())
-	conn.Close()
-	return nil
+	// Return an error, if any occured while writing to the connection. Should
+	// be nil in most cases
+	return err
 }
