@@ -8,7 +8,7 @@ import (
 	"path"
 )
 
-func createListing(reqPath string) (string, error) {
+func (server *GopherServer) createListing(reqPath string) (string, error) {
 	log.Info("Creating listing for request: ", reqPath)
 
 	var listing string
@@ -31,7 +31,6 @@ func createListing(reqPath string) (string, error) {
 		}
 
 		// If it is a directory without "index.gph", generate a menu from the contents
-
 		log.Info("Requested path ", reqPath, " does not contain a gophermap, creating file list")
 		files, err := ioutil.ReadDir(reqPath)
 
@@ -42,9 +41,9 @@ func createListing(reqPath string) (string, error) {
 		for _, f := range files {
 			link := ""
 			if f.IsDir() {
-				link = createLink("MENU", f.Name(), path.Clean(path.Join(f.Name())))
+				link = server.createLink("MENU", f.Name(), path.Clean(path.Join(f.Name())))
 			} else {
-				link = createLink("TEXT", f.Name(), path.Clean(path.Join(f.Name())))
+				link = server.createLink("TEXT", f.Name(), path.Clean(path.Join(f.Name())))
 			}
 			log.Info("Adding item: " + link)
 			listing += link
@@ -69,6 +68,6 @@ func createListing(reqPath string) (string, error) {
 
 }
 
-func createLink(itemType, text, path string) string {
-	return fmt.Sprintf("%s%s\t%s\t%s\t%s\r\n", itemTypes[itemType], text, path, CONN_DOMAIN, CONN_PORT)
+func (server *GopherServer) createLink(itemType, text, path string) string {
+	return fmt.Sprintf("%s%s\t%s\t%s\t%s\r\n", itemTypes[itemType], text, path, server.Domain, server.Port)
 }

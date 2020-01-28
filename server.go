@@ -73,7 +73,7 @@ func (server *GopherServer) parseRequest(req string, reqLen int) (string, error)
 		log.Fatal(err)
 	}
 
-	listing, err := createListing(savePath)
+	listing, err := server.createListing(savePath)
 
 	if err != nil {
 		log.Fatal(err)
