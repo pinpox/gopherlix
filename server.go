@@ -96,6 +96,8 @@ func (server *GopherServer) Run() {
 	}
 }
 
+// parseRequest parses the request and decides what the reponse should be. It
+// is then returned as a simple string to be send by handleRequest
 func (server *GopherServer) parseRequest(req string) (string, error) {
 
 	// Trim trailing \r\n characters
