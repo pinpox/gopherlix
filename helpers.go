@@ -24,7 +24,6 @@ func dirExists(filename string) bool {
 }
 
 func (server *GopherServer) getSavePath(subPath string) (string, error) {
-	//TODO check for directory traversal
 	savePath := path.Clean(path.Join(server.RootDir, subPath))
 	if !strings.HasPrefix(savePath, server.RootDir) {
 		return "", errors.New("Path outside of server root: " + savePath)

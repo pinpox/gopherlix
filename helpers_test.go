@@ -43,37 +43,43 @@ func Test_dirExists(t *testing.T) {
 }
 
 func TestGopherServer_getSavePath(t *testing.T) {
-	type fields struct {
-		Port    string
-		Domain  string
-		Host    string
-		RootDir string
-		run     bool
-		signals chan bool
-	}
-	type args struct {
-		subPath string
-	}
 	tests := []struct {
 		name    string
-		fields  fields
-		args    args
+		server  GopherServer
+		subPath string
 		want    string
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{name: "Test path inside server root",
+			server:  NewGopherServer("8000", "localhost", "localhost", "testdata"),
+			subPath: "subdir1",
+			want:    "testdata/subdir1",
+			wantErr: false,
+		},
+
+		{name: "Test absolute path outside server root",
+			server:  NewGopherServer("8000", "localhost", "localhost", "testdata"),
+			subPath: "/etc/passwd",
+			want:    "testdata/etc/passwd",
+			wantErr: false,
+		},
+		{name: "Test path containing ../../",
+			server:  NewGopherServer("8000", "localhost", "localhost", "testdata"),
+			subPath: "subdir1/../../../",
+			want:    "",
+			wantErr: true,
+		},
+		{name: "Test path starting with ../../",
+			server:  NewGopherServer("8000", "localhost", "localhost", "testdata"),
+			subPath: "../../../subdir",
+			want:    "",
+			wantErr: true,
+		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			server := &GopherServer{
-				Port:    tt.fields.Port,
-				Domain:  tt.fields.Domain,
-				Host:    tt.fields.Host,
-				RootDir: tt.fields.RootDir,
-				run:     tt.fields.run,
-				signals: tt.fields.signals,
-			}
-			got, err := server.getSavePath(tt.args.subPath)
+			got, err := tt.server.getSavePath(tt.subPath)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GopherServer.getSavePath() error = %v, wantErr %v", err, tt.wantErr)
 				return
