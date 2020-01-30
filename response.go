@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 	"path"
 )
 
@@ -15,13 +14,13 @@ func (server *GopherServer) createListing(reqPath string) (string, error) {
 	var listing string
 
 	// Handle directories
-	if dirExists(reqPath) {
+	if server.ServerRoot.DirExists(reqPath) {
 
 		log.Info("Requested path ", reqPath, " exists")
 
 		// Check if it contains a "index.gph" and serve it if it does
-		if fileExists(path.Join(reqPath, "index.gph")) {
-			gopherMap, err := ioutil.ReadFile(path.Join(reqPath, "index.gph"))
+		if server.ServerRoot.FileExists(path.Join(reqPath, "index.gph")) {
+			gopherMap, err := server.ServerRoot.GetServerFile(path.Join(reqPath, "index.gph"))
 
 			if err != nil {
 				return "", err
@@ -33,7 +32,7 @@ func (server *GopherServer) createListing(reqPath string) (string, error) {
 
 		// If it is a directory without "index.gph", generate a menu from the contents
 		log.Info("Requested path ", reqPath, " does not contain a gophermap, creating file list")
-		files, err := ioutil.ReadDir(reqPath)
+		files, err := server.ServerRoot.GetServerDir(reqPath)
 
 		if err != nil {
 			return "", err
@@ -41,12 +40,8 @@ func (server *GopherServer) createListing(reqPath string) (string, error) {
 
 		for _, f := range files {
 			link := ""
-			if f.IsDir() {
-				link = server.createLink("MENU", f.Name(), path.Clean(path.Join(f.Name())))
-			} else {
-				link = server.createLink("TEXT", f.Name(), path.Clean(path.Join(f.Name())))
-			}
-			log.Info("Adding item: " + link)
+			link = server.createLink(server.ServerRoot.Type(path.Join(reqPath, f)), f, path.Join(reqPath, f))
+			log.Info("Adding item: " + replaceCRLF(link))
 			listing += link
 		}
 
@@ -56,18 +51,16 @@ func (server *GopherServer) createListing(reqPath string) (string, error) {
 	}
 
 	// Handle files
-	if fileExists(reqPath) {
-		gopherMap, err := ioutil.ReadFile(reqPath)
+	if server.ServerRoot.FileExists(reqPath) {
+		gopherMap, err := server.ServerRoot.GetServerFile(reqPath)
 		if err != nil {
 			return "", err
 		}
 
-		log.Info("Requested path", reqPath, " contains gophermap")
 		return string(bytes.TrimRight(gopherMap, "\n")), nil
 	}
 
 	return "", errors.New("File or directory " + reqPath + " not found")
-
 }
 
 func (server *GopherServer) createLink(itemType, text, path string) string {

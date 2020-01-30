@@ -21,9 +21,7 @@ type GopherServer struct {
 	// Host to bind to, most likely localhost or a specific IP
 	Host string
 
-	// Root folder of the server. All content files should be placed inside
-	// of it since only files in this folder are allowed to be accessed.
-	RootDir string
+	ServerRoot *GopherServerRoot
 
 	// Control server main loop. Setting this to false or sending a signal
 	// to the channel will result in stopping the server
@@ -33,13 +31,21 @@ type GopherServer struct {
 
 // NewGopherServer is used to create a new server. It returns a server, that is not running yet
 func NewGopherServer(port, domain, host, root string) GopherServer {
+
+	rootDir, err := NewGopherServerRoot(root)
+
+	// We can't continue without a working server root
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	return GopherServer{
-		Port:    port,
-		Domain:  domain,
-		Host:    host,
-		RootDir: root,
-		run:     false,
-		signals: make(chan bool),
+		Port:       port,
+		Domain:     domain,
+		Host:       host,
+		ServerRoot: rootDir,
+		run:        false,
+		signals:    make(chan bool),
 	}
 }
 
@@ -100,24 +106,18 @@ func (server *GopherServer) Run() {
 // is then returned as a simple string to be send by handleRequest
 func (server *GopherServer) parseRequest(req string) (string, error) {
 
+	// Log request
+	log.Info("Request: \""+replaceCRLF(req), "\"")
+
 	// Trim trailing \r\n characters
 	reqPath := strings.TrimSuffix(req, "\r\n")
-	log.Info("Parsing request: " + reqPath)
-
-	// Get a path inside the server root
-	savePath, err := server.getSavePath(reqPath)
-
-	// Stop parsing if something is wrong with the path to prevent directory
-	// traversal
-	if err != nil {
-		return "", err
-	}
 
 	// Request path is allowed, try to create a response
-	listing, err := server.createListing(savePath)
+	listing, err := server.createListing(reqPath)
 
 	// If the file was not found or any other error occured, return an error
 	if err != nil {
+		log.Warn("Error creating response for: \"", reqPath, "\"")
 		return "", err
 	}
 

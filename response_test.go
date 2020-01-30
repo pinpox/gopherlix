@@ -1,7 +1,6 @@
 package main
 
 import (
-	"strings"
 	"testing"
 )
 
@@ -129,9 +128,4 @@ func TestGopherServer_createListing(t *testing.T) {
 			}
 		})
 	}
-}
-
-// Make \r\n readable in test output
-func replaceCRLF(input string) string {
-	return strings.ReplaceAll(strings.ReplaceAll(input, "\r", "\\r"), "\n", "\\n")
 }
