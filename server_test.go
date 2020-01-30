@@ -1,11 +1,9 @@
 package main
 
-import (
-	"net"
-	"testing"
-)
+import "testing"
 
 func TestGopherServer_parseRequest(t *testing.T) {
+
 	tests := []struct {
 		name    string
 		server  GopherServer
@@ -32,7 +30,7 @@ func TestGopherServer_parseRequest(t *testing.T) {
 			name:    "Test root/subdir1",
 			server:  NewGopherServer("8000", "localhost", "localhost", "testdata"),
 			request: "subdir1\r\n",
-			want: "0file4	file4	localhost	8000\r\n0file5	file5	localhost	8000\r\n.",
+			want: "0file4	subdir1/file4	localhost	8000\r\n0file5	subdir1/file5	localhost	8000\r\n.",
 			wantErr: false,
 		},
 		{
@@ -87,43 +85,6 @@ func TestGopherServer_parseRequest(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("GopherServer.parseRequest() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestGopherServer_handleRequest(t *testing.T) {
-	type fields struct {
-		Port    string
-		Domain  string
-		Host    string
-		RootDir string
-		run     bool
-		signals chan bool
-	}
-	type args struct {
-		conn net.Conn
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			server := &GopherServer{
-				Port:    tt.fields.Port,
-				Domain:  tt.fields.Domain,
-				Host:    tt.fields.Host,
-				RootDir: tt.fields.RootDir,
-				run:     tt.fields.run,
-				signals: tt.fields.signals,
-			}
-			if err := server.handleRequest(tt.args.conn); (err != nil) != tt.wantErr {
-				t.Errorf("GopherServer.handleRequest() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
