@@ -21,7 +21,11 @@ type GopherServer struct {
 	// Host to bind to, most likely localhost or a specific IP
 	Host string
 
+	// Server root
 	ServerRoot *GopherServerRoot
+
+	// Templates directory path
+	TemplatesDir string
 
 	// Control server main loop. Setting this to false or sending a signal
 	// to the channel will result in stopping the server
@@ -30,7 +34,7 @@ type GopherServer struct {
 }
 
 // NewGopherServer is used to create a new server. It returns a server, that is not running yet
-func NewGopherServer(port, domain, host, root string) GopherServer {
+func NewGopherServer(port, domain, host, root, templates string) GopherServer {
 
 	rootDir, err := NewGopherServerRoot(root)
 
