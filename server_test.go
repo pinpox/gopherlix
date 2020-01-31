@@ -37,7 +37,7 @@ func TestGopherServer_parseRequest(t *testing.T) {
 			name:    "Test root/subdir2",
 			server:  NewGopherServer("8000", "localhost", "localhost", "testdata/content", "testdata/templates"),
 			request: "subdir2\r\n",
-			want:    "indexcontent",
+			want:    "indexcontent\r\n.",
 			wantErr: false,
 		},
 		{
@@ -84,7 +84,7 @@ func TestGopherServer_parseRequest(t *testing.T) {
 				return
 			}
 			if got != tt.want {
-				t.Errorf("GopherServer.parseRequest() = %v, want %v", got, tt.want)
+				t.Errorf("GopherServer.parseRequest() = %v, want %v", replaceCRLF(got), replaceCRLF(tt.want))
 			}
 		})
 	}

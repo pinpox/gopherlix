@@ -124,6 +124,7 @@ func (server *GopherServer) parseRequest(req string) (string, error) {
 
 	// Handle directories
 	if server.ServerRoot.DirExists(reqPath) {
+		log.Info("directory exists", reqPath)
 		// Check if it contains a "index.gph" gophermap
 		if server.ServerRoot.FileExists(path.Join(reqPath, "index.gph")) {
 			fileContent, err := server.ServerRoot.GetServerFile(path.Join(reqPath, "index.gph"))
@@ -135,13 +136,13 @@ func (server *GopherServer) parseRequest(req string) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			return response, nil
+			return response + "\r\n.", nil
 
 		} else {
 			// No gophermap found, create a listing
 			if listing, err := server.createListing(reqPath); err == nil {
 				if listing, err = server.parseTemplate(listing, templData); err == nil {
-					return listing, nil
+					return listing + "\r\n.", nil
 				}
 			}
 		}
@@ -156,7 +157,7 @@ func (server *GopherServer) parseRequest(req string) (string, error) {
 					return response, nil
 				}
 			}
-			return string(bytes.TrimRight(fileContent, "\n")), nil
+			return string(fileContent), nil
 		}
 	}
 
@@ -188,7 +189,7 @@ func (server *GopherServer) parseTemplate(templ string, data map[string]string) 
 		}
 	}
 
-	return outHeader.String() + outFile.String() + outFooter.String(), nil
+	return strings.TrimRight(outHeader.String()+outFile.String()+outFooter.String(), "\n"), nil
 }
 
 func (server *GopherServer) isTemplate(path string) bool {

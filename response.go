@@ -6,6 +6,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"path"
+	"strings"
 )
 
 func (server *GopherServer) createListing(reqPath string) (string, error) {
@@ -26,7 +27,7 @@ func (server *GopherServer) createListing(reqPath string) (string, error) {
 		listing += link
 	}
 
-	return listing, nil
+	return strings.TrimRight(listing, "\r\n"), nil
 }
 
 func (server *GopherServer) createLink(itemType, text, path string) string {
