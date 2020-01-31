@@ -1,0 +1,23 @@
+iWelcome to this Gopherhole!
+i
+i
+i         ,_---~~~~~----._
+i  _,,_,*^____      _____``*g*\"*,
+i / __/ /'     ^.  /      \ ^@q   f
+i[  @f | @))    |  | @))   l  0 _/
+i \`/   \~____ / __ \_____/    \
+i  |           _l__l_           I
+i  }          [______]           I
+i  ]            | | |            |
+i  ]             ~ ~             |
+i  |                             |
+i  |                             |
+i
+iThis is the default page. To add content to your server, put files and
+idirectories in the `content` folder. You can also include header and footer
+itemplates in the `templates` directory.
+i
+iLook at the `config.ini` file and the following links for more options
+i
+.
+
