@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"net"
+	"path"
 	"strings"
+	"text/template"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -24,9 +28,6 @@ type GopherServer struct {
 	// Server root
 	ServerRoot *GopherServerRoot
 
-	// Templates directory path
-	TemplatesDir string
-
 	// Control server main loop. Setting this to false or sending a signal
 	// to the channel will result in stopping the server
 	run     bool
@@ -36,7 +37,7 @@ type GopherServer struct {
 // NewGopherServer is used to create a new server. It returns a server, that is not running yet
 func NewGopherServer(port, domain, host, root, templates string) GopherServer {
 
-	rootDir, err := NewGopherServerRoot(root)
+	rootDir, err := NewGopherServerRoot(root, templates)
 
 	// We can't continue without a working server root
 	if err != nil {
@@ -116,17 +117,83 @@ func (server *GopherServer) parseRequest(req string) (string, error) {
 	// Trim trailing \r\n characters
 	reqPath := strings.Trim(req, "\r\n")
 
-	// Request path is allowed, try to create a response
-	listing, err := server.createListing(reqPath)
+	templData := map[string]string{
+		"Directory":  "/" + reqPath,
+		"ServerName": server.Domain,
+	}
 
-	// If the file was not found or any other error occured, return an error
-	if err != nil {
-		log.Warn("Error creating response for: \"", reqPath, "\"")
-		return "", err
+	// Handle directories
+	if server.ServerRoot.DirExists(reqPath) {
+		// Check if it contains a "index.gph" gophermap
+		if server.ServerRoot.FileExists(path.Join(reqPath, "index.gph")) {
+			fileContent, err := server.ServerRoot.GetServerFile(path.Join(reqPath, "index.gph"))
+			if err != nil {
+				return "", err
+			}
+			log.Info("Found index.ghp")
+			response, err := server.parseTemplate(string(fileContent), templData)
+			if err != nil {
+				return "", err
+			}
+			return response, nil
+
+		} else {
+			// No gophermap found, create a listing
+			if listing, err := server.createListing(reqPath); err == nil {
+				if listing, err = server.parseTemplate(listing, templData); err == nil {
+					return listing, nil
+				}
+			}
+		}
+	}
+
+	// Handle files
+	if server.ServerRoot.FileExists(reqPath) {
+		if fileContent, err := server.ServerRoot.GetServerFile(reqPath); err == nil {
+			// Check if we should treat file as a template
+			if server.isTemplate(reqPath) {
+				if response, err := server.parseTemplate(string(fileContent), templData); err == nil {
+					return response, nil
+				}
+			}
+			return string(bytes.TrimRight(fileContent, "\n")), nil
+		}
 	}
 
 	// Everything is fine, return the response
-	return listing, nil
+	return "", errors.New("Could not parse request")
+}
+
+func (server *GopherServer) parseTemplate(templ string, data map[string]string) (string, error) {
+
+	outHeader := bytes.NewBufferString("")
+	outFile := bytes.NewBufferString("")
+	outFooter := bytes.NewBufferString("")
+
+	if headerTmpl, err := template.New("header").Parse(server.ServerRoot.HeaderTemplate()); err == nil {
+		if err := headerTmpl.Execute(outHeader, data); err != nil {
+			return "", errors.New("Could not parse header Template")
+		}
+	}
+
+	if footerTmpl, err := template.New("footer").Parse(server.ServerRoot.FooterTemplate()); err == nil {
+		if err := footerTmpl.Execute(outFooter, data); err != nil {
+			return "", errors.New("Could not parse footer template")
+		}
+	}
+
+	if fileTmpl, err := template.New("request").Parse(templ); err == nil {
+		if err := fileTmpl.Execute(outFile, data); err != nil {
+			return "", errors.New("Could not parse file template")
+		}
+	}
+
+	return outHeader.String() + outFile.String() + outFooter.String(), nil
+}
+
+func (server *GopherServer) isTemplate(path string) bool {
+	//TODO implement
+	return true
 }
 
 // Handles incoming requests.
@@ -140,24 +207,24 @@ func (server *GopherServer) handleRequest(conn net.Conn) error {
 
 	// Read the incoming connection into the buffer.
 	reqLen, err := conn.Read(buf)
+
 	if err != nil {
 		log.Println("Error reading:", err.Error())
 		return err
 	}
 
 	// Create a response from the request
-	response, err := server.parseRequest(string(buf[:reqLen]))
+	if response, err := server.parseRequest(string(buf[:reqLen])); err != nil {
 
-	// If the request could not be parsed or any error occured, just send an
-	// error message and return an error
-	if err != nil {
+		// If the request could not be parsed or any error occured, just send an
+		// error message and return an error
 		conn.Write([]byte("Invalid request"))
 		return err
+	} else {
+
+		// Send response
+		_, err = conn.Write([]byte(response))
 	}
-
-	// Send response
-	_, err = conn.Write([]byte(response))
-
 	// Return an error, if any occured while writing to the connection. Should
 	// be nil in most cases
 	return err

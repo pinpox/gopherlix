@@ -13,24 +13,35 @@ import (
 // root folder
 type GopherServerRoot struct {
 	ServerRootDir string
+	TemplatesDir  string
 }
 
 // NewGopherServerRoot returns a new server root object
-func NewGopherServerRoot(path string) (*GopherServerRoot, error) {
+func NewGopherServerRoot(root, templates string) (*GopherServerRoot, error) {
 
-	info, err := os.Stat(path)
-
-	// Check if the path exists
+	// Check if root path exists
+	info, err := os.Stat(root)
 	if os.IsNotExist(err) {
 		return nil, err
 	}
 
-	// Check that it is a directory
+	// Check if it is a directory
 	if !info.IsDir() {
 		return nil, err
 	}
 
-	return &GopherServerRoot{ServerRootDir: path}, nil
+	// Check if templates path exists
+	info, err = os.Stat(templates)
+	if os.IsNotExist(err) {
+		return nil, err
+	}
+
+	// Check if it is a directory
+	if !info.IsDir() {
+		return nil, err
+	}
+
+	return &GopherServerRoot{ServerRootDir: root, TemplatesDir: templates}, nil
 }
 
 // FileExists checks if a file exists relative to the server root
@@ -104,6 +115,29 @@ func (sr *GopherServerRoot) Type(reqPath string) string {
 	}
 
 	return "TEXT"
+}
+func (sr *GopherServerRoot) HeaderTemplate() string {
+
+	path := path.Join(sr.TemplatesDir, "header.gph")
+	file, err := ioutil.ReadFile(path)
+
+	if err != nil {
+		log.Errorf("Error reading template: %s (%s)", path, err)
+		return ""
+	}
+	return string(file)
+}
+
+func (sr *GopherServerRoot) FooterTemplate() string {
+
+	path := path.Join(sr.TemplatesDir, "footer.gph")
+	file, err := ioutil.ReadFile(path)
+
+	if err != nil {
+		log.Errorf("Error reading template: %s (%s)", path, err)
+		return ""
+	}
+	return string(file)
 }
 
 // GetServerFile returns the contents of the requested file relative to the server root
