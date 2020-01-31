@@ -137,13 +137,12 @@ func (server *GopherServer) parseRequest(req string) (string, error) {
 				return "", err
 			}
 			return response + "\r\n.", nil
+		}
 
-		} else {
-			// No gophermap found, create a listing
-			if listing, err := server.createListing(reqPath); err == nil {
-				if listing, err = server.parseTemplate(listing, templData); err == nil {
-					return listing + "\r\n.", nil
-				}
+		// No gophermap found, create a listing
+		if listing, err := server.createListing(reqPath); err == nil {
+			if listing, err = server.parseTemplate(listing, templData); err == nil {
+				return listing + "\r\n.", nil
 			}
 		}
 	}
