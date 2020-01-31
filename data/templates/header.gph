@@ -1,4 +1,4 @@
-i This is the header template
-i [ You are browsing {{.ServerName}} {{.Directory}}]
-i
+iYou are here:
+i[gopher://{{.ServerName}}{{.Directory}}]
+i--------------------
 i

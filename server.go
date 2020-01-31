@@ -118,7 +118,7 @@ func (server *GopherServer) parseRequest(req string) (string, error) {
 	reqPath := strings.Trim(req, "\r\n")
 
 	templData := map[string]string{
-		"Directory":  "/" + reqPath,
+		"Directory":  reqPath,
 		"ServerName": server.Domain,
 	}
 
