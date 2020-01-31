@@ -81,28 +81,29 @@ func (sr *GopherServerRoot) getSavePath(subPath string) (string, error) {
 }
 
 // Type returns the gopher-specific type for a given item relative to the server root
-func (sr *GopherServerRoot) Type(path string) string {
+func (sr *GopherServerRoot) Type(reqPath string) string {
 
-	savePath, err := sr.getSavePath(path)
+	savePath, err := sr.getSavePath(reqPath)
 	log.Info("Determining type for: ", savePath)
 
 	// If the path is not save, return as if it does not exist
 	if err != nil {
-		log.Errorf("Error reading path: %s (%s)", path, err)
+		log.Errorf("Error reading path: %s (%s)", reqPath, err)
 		return ""
 	}
 
 	info, err := os.Stat(savePath)
 	if os.IsNotExist(err) {
-		log.Errorf("Error reading path: %s (%s)", path, err)
+		log.Errorf("Error reading path: %s (%s)", reqPath, err)
 		return ""
 	}
-	if info.IsDir() {
+
+	// Check if directory exists and does not contain gophermap
+	if info.IsDir() && !sr.FileExists(path.Join(savePath, "index.gph")) {
 		return "MENU"
 	}
 
 	return "TEXT"
-
 }
 
 // GetServerFile returns the contents of the requested file relative to the server root

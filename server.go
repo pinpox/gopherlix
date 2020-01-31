@@ -110,7 +110,7 @@ func (server *GopherServer) parseRequest(req string) (string, error) {
 	log.Info("Request: \""+replaceCRLF(req), "\"")
 
 	// Trim trailing \r\n characters
-	reqPath := strings.TrimSuffix(req, "\r\n")
+	reqPath := strings.Trim(req, "\r\n")
 
 	// Request path is allowed, try to create a response
 	listing, err := server.createListing(reqPath)
