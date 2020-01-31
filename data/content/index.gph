@@ -19,5 +19,8 @@ itemplates in the `templates` directory.
 i
 iLook at the `config.ini` file and the following links for more options
 i
-.
-
+i
+0Configuration	/help/configuration	localhost	8000
+0Getting Started	/help/getting_started	localhost	8000
+0Headers and Footers	/help/header_footer	localhost	8000
+0Templates	/help/templates	localhost	8000

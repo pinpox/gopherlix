@@ -1,3 +1,4 @@
-[{{.Crumbs}}] on {{.Servename}}
-
-
+i This is the header template
+i [ You are browsing {{.ServerName}} {{.Directory}}]
+i
+i
