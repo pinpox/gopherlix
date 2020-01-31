@@ -15,14 +15,73 @@ A Server for the Gopher protocol, written in the Go.
 
 ## Usage
 
-To start the server create a directory with you content. At the moment only
-textfiles and directories are supported.
+### Quickstart
 
-The client will be able to request paths. Text files will be rendered in the
-client's browser and directories will return a listing of all files in them.
+#### Installation
 
-### Custom gophermaps
+Just clone the repository and run `go build` in it.
 
-To show custom content instead of the generated directory listing for a
-requested directory, place a file named `index.gph` in it. It will be shown
-instead of the default listing.
+```sh
+git clone https://github.com/binaryplease/gopherlix.git
+cd gopherlix
+go build
+```
+
+#### Basic configuration
+
+```ini
+[paths]
+content = "data/content"
+templates = "data/templates"
+
+[server]
+port = "8000"
+domain = "localhost"
+host = "0.0.0.0"
+```
+
+The configuration file (`config.ini`) should be self explanatory. The server
+includes some sample pages and should run with it out of the box on port `8000`.
+You may want to change the port to gophers default port `70`
+
+#### Run the server
+
+Gopherlix will look for the configuration file in the same folder as the server
+per defalt.
+
+To start it just run `./gopherlix` and start browsing `goopher://localhost:8000`
+
+
+### Features
+
+#### Adding content
+
+You can add content in the `content` directory configured in `config.ini`.
+The `templates` directory includes templates that can be rendered in inside
+other files. The `header.gph` and `footer.gph` will be added automatically to
+all pages.
+
+
+#### Directory listings
+
+A request like `gopher://localhost/something` will look for
+`data/content/something` and check if it's a file or a directory.
+For a file, the contents of it will be returned. If the requested path is a
+directory, it will try to find a file called `index.gph` in it and display it.
+
+If no `index.gph` is found in this directory, it will generate a listing with
+links to all the directory contents.
+
+#### Templating
+
+Gopherlix leverages the power of golangs
+[templates](https://golang.org/pkg/text/template/) to generate content
+dynamically. This allows to include ariables in the form of `{{.Variablename}}`
+in any page that will be replaced accordingly. At the moment the following
+variables are suported (more to come in future updates):
+
+| Variable        | Description                    |
+|-----------------|--------------------------------|
+| {{.Directory}}  | Path of the current request    |
+| {{.ServerName}} | Shows the server's domain name |
+
