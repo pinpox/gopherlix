@@ -20,7 +20,7 @@ i
 iLook at the `config.ini` file and the following links for more options
 i
 i
-1Configuration	/help/configuration	localhost	8000
-1Getting Started	/help/getting_started	localhost	8000
-1Headers and Footers	/help/header_footer	localhost	8000
-1Templates	/help/templates	localhost	8000
+1Configuration	/help/configuration	{{.ServerName}}	8000
+1Getting Started	/help/getting_started	{{.ServerName}}	8000
+1Headers and Footers	/help/header_footer	{{.ServerName}}	8000
+1Templates	/help/templates	{{.ServerName}}	8000
