@@ -9,7 +9,9 @@
 
 A Server for the Gopher protocol, written in the Go.
 
-![](./logo.png)
+<p align="center">
+  <img src="./logo.png">
+</p>
 
 ## Usage
 
