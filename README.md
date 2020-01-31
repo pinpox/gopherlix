@@ -85,3 +85,7 @@ variables are suported (more to come in future updates):
 | {{.Directory}}  | Path of the current request    |
 | {{.ServerName}} | Shows the server's domain name |
 
+# Contributing
+
+Pull-request, issues, feature-requst and contributions of any kind are *very*
+welcome!
