@@ -156,3 +156,40 @@ func TestGopherServer_parseTemplate(t *testing.T) {
 		})
 	}
 }
+
+func TestGopherServer_isTemplate(t *testing.T) {
+	type fields struct {
+		Port       string
+		Domain     string
+		Host       string
+		ServerRoot *GopherServerRoot
+		run        bool
+		signals    chan bool
+	}
+	type args struct {
+		path string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := &GopherServer{
+				Port:       tt.fields.Port,
+				Domain:     tt.fields.Domain,
+				Host:       tt.fields.Host,
+				ServerRoot: tt.fields.ServerRoot,
+				run:        tt.fields.run,
+				signals:    tt.fields.signals,
+			}
+			if got := server.isTemplate(tt.args.path); got != tt.want {
+				t.Errorf("GopherServer.isTemplate() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

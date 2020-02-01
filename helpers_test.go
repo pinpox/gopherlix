@@ -1,5 +1,7 @@
 package main
 
+import "testing"
+
 // import "testing"
 
 // func Test_fileExists(t *testing.T) {
@@ -97,3 +99,23 @@ package main
 // 		})
 // 	}
 // }
+
+func Test_replaceCRLF(t *testing.T) {
+	type args struct {
+		input string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := replaceCRLF(tt.args.input); got != tt.want {
+				t.Errorf("replaceCRLF() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

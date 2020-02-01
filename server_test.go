@@ -1,6 +1,10 @@
 package main
 
-import "testing"
+import (
+	"net"
+	"reflect"
+	"testing"
+)
 
 func TestGopherServer_parseRequest(t *testing.T) {
 
@@ -85,6 +89,97 @@ func TestGopherServer_parseRequest(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("GopherServer.parseRequest() = %v, want %v", replaceCRLF(got), replaceCRLF(tt.want))
+			}
+		})
+	}
+}
+
+func TestNewGopherServer(t *testing.T) {
+	type args struct {
+		port      string
+		domain    string
+		host      string
+		root      string
+		templates string
+	}
+	tests := []struct {
+		name string
+		args args
+		want GopherServer
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := NewGopherServer(tt.args.port, tt.args.domain, tt.args.host, tt.args.root, tt.args.templates); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewGopherServer() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGopherServer_Run(t *testing.T) {
+	type fields struct {
+		Port       string
+		Domain     string
+		Host       string
+		ServerRoot *GopherServerRoot
+		run        bool
+		signals    chan bool
+	}
+	tests := []struct {
+		name   string
+		fields fields
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := &GopherServer{
+				Port:       tt.fields.Port,
+				Domain:     tt.fields.Domain,
+				Host:       tt.fields.Host,
+				ServerRoot: tt.fields.ServerRoot,
+				run:        tt.fields.run,
+				signals:    tt.fields.signals,
+			}
+			server.Run()
+		})
+	}
+}
+
+func TestGopherServer_handleRequest(t *testing.T) {
+	type fields struct {
+		Port       string
+		Domain     string
+		Host       string
+		ServerRoot *GopherServerRoot
+		run        bool
+		signals    chan bool
+	}
+	type args struct {
+		conn net.Conn
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := &GopherServer{
+				Port:       tt.fields.Port,
+				Domain:     tt.fields.Domain,
+				Host:       tt.fields.Host,
+				ServerRoot: tt.fields.ServerRoot,
+				run:        tt.fields.run,
+				signals:    tt.fields.signals,
+			}
+			if err := server.handleRequest(tt.args.conn); (err != nil) != tt.wantErr {
+				t.Errorf("GopherServer.handleRequest() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
