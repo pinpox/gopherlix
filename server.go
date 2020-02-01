@@ -1,12 +1,10 @@
 package main
 
 import (
-	"bytes"
 	"errors"
 	"net"
 	"path"
 	"strings"
-	"text/template"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -164,67 +162,34 @@ func (server *GopherServer) parseRequest(req string) (string, error) {
 	return "", errors.New("Could not parse request")
 }
 
-func (server *GopherServer) parseTemplate(templ string, data map[string]string) (string, error) {
-
-	outHeader := bytes.NewBufferString("")
-	outFile := bytes.NewBufferString("")
-	outFooter := bytes.NewBufferString("")
-
-	if headerTmpl, err := template.New("header").Parse(server.ServerRoot.HeaderTemplate()); err == nil {
-		if err := headerTmpl.Execute(outHeader, data); err != nil {
-			return "", errors.New("Could not parse header Template")
-		}
-	}
-
-	if footerTmpl, err := template.New("footer").Parse(server.ServerRoot.FooterTemplate()); err == nil {
-		if err := footerTmpl.Execute(outFooter, data); err != nil {
-			return "", errors.New("Could not parse footer template")
-		}
-	}
-
-	if fileTmpl, err := template.New("request").Parse(templ); err == nil {
-		if err := fileTmpl.Execute(outFile, data); err != nil {
-			return "", errors.New("Could not parse file template")
-		}
-	}
-
-	return strings.TrimRight(outHeader.String()+outFile.String()+outFooter.String(), "\n"), nil
-}
-
-func (server *GopherServer) isTemplate(path string) bool {
-	//TODO implement
-	return true
-}
-
 // Handles incoming requests.
 func (server *GopherServer) handleRequest(conn net.Conn) error {
 
 	// Make sure we close the connection after using it
 	defer conn.Close()
 
+	var response string
+	var reqLen int
+	var err error
+
 	// Make a buffer to hold incoming data.
 	buf := make([]byte, 1024)
 
 	// Read the incoming connection into the buffer.
-	reqLen, err := conn.Read(buf)
-
-	if err != nil {
+	if reqLen, err = conn.Read(buf); err != nil {
 		log.Println("Error reading:", err.Error())
 		return err
 	}
 
-	// Create a response from the request
-	if response, err := server.parseRequest(string(buf[:reqLen])); err != nil {
-
-		// If the request could not be parsed or any error occured, just send an
-		// error message and return an error
+	// Try to create a response from the request. If the request could not be
+	// parsed or any error occured, just send and return an error
+	if response, err = server.parseRequest(string(buf[:reqLen])); err != nil {
 		conn.Write([]byte("Invalid request"))
 		return err
-	} else {
-
-		// Send response
-		_, err = conn.Write([]byte(response))
 	}
+
+	// Send response
+	_, err = conn.Write([]byte(response))
 	// Return an error, if any occured while writing to the connection. Should
 	// be nil in most cases
 	return err
