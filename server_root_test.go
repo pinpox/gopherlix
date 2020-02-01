@@ -64,16 +64,39 @@ func TestGopherServerRoot_FileExists(t *testing.T) {
 		ServerRootDir string
 		TemplatesDir  string
 	}
-	type args struct {
-		path string
-	}
 	tests := []struct {
 		name   string
 		fields fields
-		args   args
+		path   string
 		want   bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Existing File",
+			fields: fields{
+				ServerRootDir: "testdata/content",
+				TemplatesDir:  "testdata/templates",
+			},
+			path: "file1",
+			want: true,
+		},
+		{
+			name: "Existing Directory",
+			fields: fields{
+				ServerRootDir: "testdata/content",
+				TemplatesDir:  "testdata/templates",
+			},
+			path: "subdir1",
+			want: false,
+		},
+		{
+			name: "Not existing File",
+			fields: fields{
+				ServerRootDir: "testdata/content",
+				TemplatesDir:  "testdata/templates",
+			},
+			path: "fileinvalid",
+			want: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -81,7 +104,7 @@ func TestGopherServerRoot_FileExists(t *testing.T) {
 				ServerRootDir: tt.fields.ServerRootDir,
 				TemplatesDir:  tt.fields.TemplatesDir,
 			}
-			if got := sr.FileExists(tt.args.path); got != tt.want {
+			if got := sr.FileExists(tt.path); got != tt.want {
 				t.Errorf("GopherServerRoot.FileExists() = %v, want %v", got, tt.want)
 			}
 		})
@@ -93,16 +116,41 @@ func TestGopherServerRoot_DirExists(t *testing.T) {
 		ServerRootDir string
 		TemplatesDir  string
 	}
-	type args struct {
-		path string
-	}
 	tests := []struct {
 		name   string
 		fields fields
-		args   args
+		path   string
 		want   bool
 	}{
-		// TODO: Add test cases.
+
+		{
+			name: "Existing Directory",
+			fields: fields{
+				ServerRootDir: "testdata/content",
+				TemplatesDir:  "testdata/templates",
+			},
+			path: "subdir1",
+			want: true,
+		},
+
+		{
+			name: "Existing File",
+			fields: fields{
+				ServerRootDir: "testdata/content",
+				TemplatesDir:  "testdata/templates",
+			},
+			path: "file1",
+			want: false,
+		},
+		{
+			name: "Not existing Path",
+			fields: fields{
+				ServerRootDir: "testdata/content",
+				TemplatesDir:  "testdata/templates",
+			},
+			path: "filepathinvalid",
+			want: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -110,7 +158,7 @@ func TestGopherServerRoot_DirExists(t *testing.T) {
 				ServerRootDir: tt.fields.ServerRootDir,
 				TemplatesDir:  tt.fields.TemplatesDir,
 			}
-			if got := sr.DirExists(tt.args.path); got != tt.want {
+			if got := sr.DirExists(tt.path); got != tt.want {
 				t.Errorf("GopherServerRoot.DirExists() = %v, want %v", got, tt.want)
 			}
 		})
