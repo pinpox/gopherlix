@@ -6,21 +6,48 @@ import (
 )
 
 func TestNewGopherServerRoot(t *testing.T) {
-	type args struct {
+	tests := []struct {
+		name      string
 		root      string
 		templates string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *GopherServerRoot
-		wantErr bool
+		want      *GopherServerRoot
+		wantErr   bool
 	}{
-		// TODO: Add test cases.
+		{
+			name:      "Create a valid GopherServerRoot",
+			root:      "testdata/content",
+			templates: "testdata/templates",
+			want: &GopherServerRoot{
+				"testdata/content",
+				"testdata/templates",
+			},
+			wantErr: false,
+		},
+		{
+			name:      "Try to create GopherServerRoot with invalid root",
+			root:      "testdata/contentinvalid",
+			templates: "testdata/templates",
+			want:      nil,
+			wantErr:   true,
+		},
+		{
+			name:      "Try to create GopherServerRoot with invalid templates dir",
+			root:      "testdata/content",
+			templates: "testdata/templatesinvalid",
+			want:      nil,
+			wantErr:   true,
+		},
+		{
+			name:      "Try to create GopherServerRoot with both invalid dirs",
+			root:      "testdata/contentinvalid",
+			templates: "testdata/templatesinvalid",
+			want:      nil,
+			wantErr:   true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewGopherServerRoot(tt.args.root, tt.args.templates)
+			got, err := NewGopherServerRoot(tt.root, tt.templates)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewGopherServerRoot() error = %v, wantErr %v", err, tt.wantErr)
 				return
