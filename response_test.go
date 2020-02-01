@@ -89,38 +89,63 @@ func TestGopherServer_createListing(t *testing.T) {
 }
 
 func TestGopherServer_parseTemplate(t *testing.T) {
-	type fields struct {
-		Port       string
-		Domain     string
-		Host       string
-		ServerRoot *GopherServerRoot
-		run        bool
-		signals    chan bool
-	}
-	type args struct {
-		templ string
-		data  map[string]string
-	}
 	tests := []struct {
 		name    string
-		fields  fields
-		args    args
+		server  GopherServer
+		data    map[string]string
+		templ   string
 		want    string
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+
+		{name: "Empty template",
+			server: NewGopherServer("8000", "localhost", "localhost", "testdata/content", "testdata/templates"),
+			data: map[string]string{
+				"Directory":  "/here/is/a/path",
+				"ServerName": "servername.com",
+			},
+			templ:   "",
+			want:    "",
+			wantErr: false,
+		},
+
+		{name: "Template without variables",
+			server: NewGopherServer("8000", "localhost", "localhost", "testdata/content", "testdata/templates"),
+			data: map[string]string{
+				"Directory":  "/here/is/a/path",
+				"ServerName": "servername.com",
+			},
+			templ:   "templatecontent",
+			want:    "templatecontent",
+			wantErr: false,
+		},
+
+		{name: "Template with variables",
+			server: NewGopherServer("8000", "localhost", "localhost", "testdata/content", "testdata/templates"),
+			data: map[string]string{
+				"Directory":  "/here/is/a/path",
+				"ServerName": "servername.com",
+			},
+			templ:   "templatestart{{.Directory}}{{.ServerName}}templateend",
+			want:    "templatestart/here/is/a/pathservername.comtemplateend",
+			wantErr: false,
+		},
+
+		{name: "Template with missing variables",
+			server: NewGopherServer("8000", "localhost", "localhost", "testdata/content", "testdata/templates"),
+			data: map[string]string{
+				"Directory":  "/here/is/a/path",
+				"ServerName": "servername.com",
+			},
+			templ:   "templatestart{{.Directory}}{{.Somevar}}{{.ServerName}}templateend",
+			want:    "templatestart/here/is/a/path<no value>servername.comtemplateend",
+			wantErr: false,
+		},
+		// TODO: Add test more cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			server := &GopherServer{
-				Port:       tt.fields.Port,
-				Domain:     tt.fields.Domain,
-				Host:       tt.fields.Host,
-				ServerRoot: tt.fields.ServerRoot,
-				run:        tt.fields.run,
-				signals:    tt.fields.signals,
-			}
-			got, err := server.parseTemplate(tt.args.templ, tt.args.data)
+			got, err := tt.server.parseTemplate(tt.templ, tt.data)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GopherServer.parseTemplate() error = %v, wantErr %v", err, tt.wantErr)
 				return
